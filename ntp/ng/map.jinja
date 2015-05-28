@@ -1,3 +1,7 @@
+{% set default_driftfile =
+    '/var/db/ntp.drift'
+      if grains['os_family'] == 'FreeBSD'
+      else '/var/lib/ntp/ntp.drift' %}
 {% set ntp = {
     'lookup': salt['grains.filter_by']({
         'Debian': {
@@ -12,7 +16,11 @@
         },
         'Suse': {
             'package': 'ntp',
-            'service': 'ntp',
+            'service': 'ntpd',
+            'ntp_conf': '/etc/ntp.conf'
+        },
+        'FreeBSD': {
+            'service': 'ntpd',
             'ntp_conf': '/etc/ntp.conf'
         },
     }, merge=salt['pillar.get']('ntp:ng:lookup')),
@@ -21,8 +29,8 @@
         'ntp_conf': {
             'server': ['0.pool.ntp.org', '1.pool.ntp.org', '2.pool.ntp.org'],
             'restrict': ['default noquery nopeer', '127.0.0.1', '::1'],
-            'driftfile': ['/var/lib/ntp/ntp.drift']
+            'driftfile': [ default_driftfile ]
         }
-        
+
     })
 } %}
